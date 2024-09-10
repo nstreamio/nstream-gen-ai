@@ -156,5 +156,5 @@ Hopefully this post provided you with insight into how real-time stream processi
 Stay tuned for more developments and deep dives into intersections of generative AI and real-time stream processing!
 
 **Next steps**: 
-- **Download the Full Source Code**: [Link to GitHub repo]
+- **Download the Full Source Code**: <a href="https://github.com/nstreamio/nstream-gen-ai">https://github.com/nstreamio/nstream-gen-ai</a>
 - **Try it Yourself**: Set up your own real-time stream processing with OpenAI and SwimOS using the provided code.
