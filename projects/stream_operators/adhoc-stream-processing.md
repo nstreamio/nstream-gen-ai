@@ -1,6 +1,4 @@
-# Real-Time, Ad-hoc Stream Processing with OpenAI and SwimOS: Automating Dynamic Stream Operators
-
-## Introduction
+### Introduction
 
 In modern applications, the need for real-time data processing is ever-growing, particularly in domains like finance, 
 IoT, and large-scale monitoring. Integrating **Generative AI** with **real-time stream processing** offers an innovative 
@@ -11,6 +9,35 @@ In this blog post, we will walk through an exciting system that leverages **Open
 the automatic creation of stream processing operators, powered by **SwimOS**, a platform for building real-time, 
 streaming data applications. This integration enables dynamic, on-the-fly operations that simplify managing complex, 
 evolving streams of data. We’ll dive into the architecture, the underlying Python code, and the complete workflow.
+
+### Stock Demo Application
+
+To demonstrate the power of integrating **Generative AI** with **real-time stream processing**, this blog will focus on a stock feed application that delivers real-time data streams. The application provides two versions of stock data: a **live feed** and a **simulated feed**. These feeds serve as the data source for the ad-hoc stream operators we’ll be creating and running using SwimOS and OpenAI.
+
+We can programmatically explore this data using the SwimOS command line tool:
+
+- [Swim CLI](https://www.npmjs.com/package/@swim/cli)
+- install: `npm install-g @swim/cli`
+
+You can query a real stock (though not much will happen when the stock market is closed) as follows:
+
+```bash
+swim-cli get -h wss://stocks-live.nstream-demo.io -n /stock/NVDA -l status
+{timestamp:1726160502,price:119.4788,volume:227185179,bid:,ask:,movement:2.197}
+```
+
+You can query a simulated stock as follows:
+
+```bash
+swim-cli get -h wss://stocks-simulated.nstream-demo.io -n /stock/AAAA -l status
+{timestamp:1726160485892,price:98.99,volume:14533679.137907563,bid:55.88,ask:27.49,movement:80.09}
+```
+
+This simulated data allows developers to test and experiment with stream operators in a controlled environment without requiring access to live market data.
+
+#### Application Scope
+
+The stock demo app focuses exclusively on real-time stock data streaming. It does not offer additional stock-related features, such as historical data or market analytics. Instead, the app’s simplicity is key to understanding how ad-hoc stream operators can be added externally, via **SwimOS**, to enhance and extend functionality. This blog will demonstrate how you can dynamically apply custom processing logic to these streams—whether live or simulated—using OpenAI to generate code on the fly.
 
 ### Setting the Stage
 
@@ -23,7 +50,7 @@ together. Here's the high-level system flow:
 
 #### High-Level Architecture
 
-[Insert the image with **Natural Language** → **OpenAI + SwimOS** → **Real-time Continuous Response**]
+![]({{ "/assets/images/blog/adhoc-stream-processing-with-openai-diagram-1.png" | relative_url }})
 
 This diagram represents the overall workflow, showing how natural language queries translate into real-time stream 
 operations. The process involves three key stages:
@@ -40,7 +67,7 @@ its importance as the core functionality.
 
 #### OpenAI + SwimOS Workflow Breakdown
 
-[Insert Diagram 2 with **Identification (OpenAI)** → **Fabrication (OpenAI + SwimOS)** → **Validation (SwimOS)**]
+![]({{ "/assets/images/blog/adhoc-stream-processing-with-openai-diagram-2.png" | relative_url }})
 
 Here’s a breakdown of each stage:
 
