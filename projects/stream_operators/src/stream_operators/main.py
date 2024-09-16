@@ -522,68 +522,73 @@ def invoke_llm_to_process_command(command: str, generate_llm_code_func):
 
 
 @app.command()
-def execute(command: str):
-    """Execute a command"""
-    try:
-        # Parse the JSON response from the LLM
-        json_response = invoke_llm_to_process_command(
-            command,
-            generate_llm_code_func=generate_llm_code_for_execute)
-        print(f"json_response:\n{json_response}")
-        function_name = json_response.get("function", "map_generate")
-        parameters = json_response.get("parameters")
+def execute(command: str, max_retries: int = 5):
+    """Execute a command with retry logic"""
+    retries = 0
 
-        # Extract operation_config if present
-        operation_config = None
+    while retries < max_retries:
+        try:
+            # Parse the JSON response from the LLM
+            json_response = invoke_llm_to_process_command(
+                command,
+                generate_llm_code_func=generate_llm_code_for_execute)
+            print(f"json_response:\n{json_response}")
+            function_name = json_response.get("function", "map_generate")
+            parameters = json_response.get("parameters")
 
-        if parameters is not None:
-            operation_config = parameters.pop("operation_config", None)
-        else:
-            operation_config = json_response.get("operation_config")
+            # Extract operation_config if present
+            operation_config = None
 
-        if operation_config:
-            # operation_config = json.loads(operation_config)
+            if parameters is not None:
+                operation_config = parameters.pop("operation_config", None)
+            else:
+                operation_config = json_response.get("operation_config")
 
-            if not parameters:
-                parameters = operation_config.get("parameters")
-                print(f"* parameters: {parameters}")
+            if operation_config:
+                # operation_config = json.loads(operation_config)
 
-        if parameters is None and 'symbol' in json_response:
-            parameters = {'symbol': json_response.get('symbol')}
+                if not parameters:
+                    parameters = operation_config.get("parameters")
+                    print(f"* parameters: {parameters}")
 
-        if not function_name or not parameters:
-            raise ValueError("Invalid response from LLM")
+            if parameters is None and 'symbol' in json_response:
+                parameters = {'symbol': json_response.get('symbol')}
 
-        symbol = None
-        if 'symbol' in parameters:
-            symbol = parameters['symbol']
-        elif 'symbol' in json_response:
-            symbol = json_response.get('symbol')
+            if not function_name or not parameters:
+                raise ValueError("Invalid response from LLM")
 
-        # Call the appropriate function with the provided parameters
-        print(f"function_name: {function_name}")
-        if function_name == "read_adhoc":
-            read_adhoc(**parameters)
-        elif function_name == "read_streaming":
-            read_streaming(**parameters)
-        elif function_name == "map_direct":
-            map_direct(symbol, json.dumps(operation_config))
-        elif function_name == "map_generate":
-            map_generate(symbol, json.dumps(operation_config))
-        elif function_name == "filter_direct":
-            filter_direct(symbol, json.dumps(operation_config))
-        elif function_name == "filter_generate":
-            filter_generate(symbol, json.dumps(operation_config))
-        elif function_name == "accumulate_direct":
-            accumulate_direct(symbol, parameters["streaming_operator"], json.dumps(operation_config))
-        elif function_name == "accumulate_generate":
-            accumulate_generate(symbol, parameters["streaming_operator"], json.dumps(operation_config))
-        else:
-            print("Unknown function")
-    except ValueError as e:
-        print(f"Error: {e}")
-        print("Retrying with the same command...")
-        execute(command)
+            symbol = None
+            if 'symbol' in parameters:
+                symbol = parameters['symbol']
+            elif 'symbol' in json_response:
+                symbol = json_response.get('symbol')
+
+            # Call the appropriate function with the provided parameters
+            print(f"function_name: {function_name}")
+            if function_name == "read_adhoc":
+                read_adhoc(**parameters)
+            elif function_name == "read_streaming":
+                read_streaming(**parameters)
+            elif function_name == "map_direct":
+                map_direct(symbol, json.dumps(operation_config))
+            elif function_name == "map_generate":
+                map_generate(symbol, json.dumps(operation_config))
+            elif function_name == "filter_direct":
+                filter_direct(symbol, json.dumps(operation_config))
+            elif function_name == "filter_generate":
+                filter_generate(symbol, json.dumps(operation_config))
+            elif function_name == "accumulate_direct":
+                accumulate_direct(symbol, parameters["streaming_operator"], json.dumps(operation_config))
+            elif function_name == "accumulate_generate":
+                accumulate_generate(symbol, parameters["streaming_operator"], json.dumps(operation_config))
+            else:
+                print("Unknown function")
+            break  # Exit loop if successful
+        except ValueError as e:
+            retries += 1
+            print(f"Error: {e}. Retrying ({retries}/{max_retries})...")
+            if retries >= max_retries:
+                print("Max retries reached. Exiting.")
 
 
 if __name__ == "__main__":
